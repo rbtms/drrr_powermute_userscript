@@ -297,14 +297,14 @@
         }
 
         create_blacklist_tab() {
-            const tab_blacklist = jQuery('<li role="presentation" id="settings-blacklist-tab" class="">'
-                + '<a href="#settings-blacklist" aria-controls="settings-blacklist" role="tab" data-toggle="tab" aria-expanded="false">'
+            const tab_blacklist = jQuery('<li role="presentation" id="settings-Blacklist-tab" class="">'
+                + '<a href="#settings-Blacklist" aria-controls="settings-Blacklist" role="tab" data-toggle="tab" aria-expanded="false">'
                     + 'Blacklist'
                 + '</a>'
             + '</li>');
 
             const panel_blacklist = jQuery(`
-                <div role="tabpanel" class="tab-pane" id="settings-blacklist">
+                <div role="tabpanel" class="tab-pane" id="settings-Blacklist">
                     <div class="setting-content"></div>
                     <div class="blacklist-save-button-container" style="align: center">
                         <input type="submit" id="blacklist-add-rule-button" class="form-control list-add-rule-button" name="post" value="Add rule" tabindex="3" style="display: inline-block; max-width:49%;">
@@ -312,22 +312,33 @@
                     </div>
             </div>`);
 
+            // Save button
             panel_blacklist.find('#blacklist-save-button').on('click', function() {
                 BLACKLIST.save_to_storage();
+            });
+
+            const this_ui = this;
+            // Add rule button
+            panel_blacklist.find('#blacklist-add-rule-button').on('click', function() {
+                BLACKLIST.add_user_prop(Enum_UserProps['NAME'], '');
+                const default_userprop = new MutedUserProp(Enum_UserProps['NAME'], '');
+                
+                jQuery('#settings-Blacklist .setting-content')
+                    .append( this_ui.create_list_rule_elem(default_userprop) );
             });
 
             return [tab_blacklist, panel_blacklist];
         }
 
         create_whitelist_tab() {
-            const tab_whitelist = jQuery('<li role="presentation" id="settings-whitelist-tab" class="">'
-                + '<a href="#settings-whitelist" aria-controls="settings-whitelist" role="tab" data-toggle="tab" aria-expanded="false">'
+            const tab_whitelist = jQuery('<li role="presentation" id="settings-Whitelist-tab" class="">'
+                + '<a href="#settings-Whitelist" aria-controls="settings-Whitelist" role="tab" data-toggle="tab" aria-expanded="false">'
                     + 'Whitelist'
                 + '</a>'
             + '</li>');
 
             const panel_whitelist = jQuery(`
-                <div role="tabpanel" class="tab-pane" id="settings-whitelist">
+                <div role="tabpanel" class="tab-pane" id="settings-Whitelist">
                     <div class="setting-content">
                     </div>
             </div>`);
@@ -438,6 +449,7 @@
 
         // Add the rules to the setting panel of a given list
         populate_list_rules(list) {
+            console.log('populate ' + list.name, list.get_elems());
             const userProps = list.get_elems();
 
             userProps.forEach( userProp => {
