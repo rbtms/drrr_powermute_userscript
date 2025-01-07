@@ -93,15 +93,15 @@
         }
 
         add_rule(rule) {
-            const has_rule = this.rules.some( _rule => {
-                _rule.prop_type === rule.prop_type && _rule.prop_val === rule.prop_val
+            const has_rule = this.rules.some((_rule) => {
+                _rule.prop_type === rule.prop_type && _rule.prop_val === rule.prop_val;
             });
 
             const is_empty = rule.prop_val === '';
 
             // Add rule only if it doesn't exist aleady, except if it's empty.
             // In any case empty rules are filtered on save
-            if(!has_rule) {
+            if (!has_rule) {
                 this.add_elem(rule);
                 return true;
             } else {
@@ -113,10 +113,10 @@
         remove_rule(rule) {
             console.log('CALLED: remove_rule');
 
-            for(const _rule of this.rules) {
-                if( _rule.prop_type === rule.prop_type && _rule.prop_val === rule.prop_val ) {
+            for (const _rule of this.rules) {
+                if (_rule.prop_type === rule.prop_type && _rule.prop_val === rule.prop_val) {
                     console.log('RULE FOUND');
-                    
+
                     this.rules.splice(this.rules.indexOf(rule), 1);
                 } else {
                     console.log('RULE NOT FOUND', rule, _rule);
@@ -125,11 +125,10 @@
         }
 
         save_to_storage() {
-            const json = this.rules.filter( rule => rule.prop_val != '' )
-                .map((rule) => [rule.prop_type.description, rule.prop_val]);
+            const json = this.rules.filter((rule) => rule.prop_val != '').map((rule) => [rule.prop_type.description, rule.prop_val]);
 
             localStorage.setItem('PM_' + this.name, JSON.stringify(json));
-            
+
             alert(this.name + ' saved');
             console.info('[DRRR Power Mute] SAVED ' + this.name + ' TO STORAGE', JSON.stringify(json));
         }
@@ -344,10 +343,10 @@
             const this_ui = this;
             // Add rule button
             panel_blacklist.find('#blacklist-add-rule-button').on('click', function () {
-                const rule = new MutedUserProp(Enum_UserProps.NAME, '')
+                const rule = new MutedUserProp(Enum_UserProps.NAME, '');
                 const added_rule = BLACKLIST.add_rule(rule);
 
-                if( added_rule ) {
+                if (added_rule) {
                     jQuery('#settings-Blacklist .setting-content').append(this_ui.create_list_rule_elem(BLACKLIST, rule));
                 }
             });
@@ -381,10 +380,10 @@
             const this_ui = this;
             // Add rule button
             panel_whitelist.find('#whitelist-add-rule-button').on('click', function () {
-                const rule = new MutedUserProp(Enum_UserProps.NAME, '')
+                const rule = new MutedUserProp(Enum_UserProps.NAME, '');
                 const added_rule = WHITELIST.add_rule(rule);
 
-                if( added_rule ) {
+                if (added_rule) {
                     jQuery('#settings-Whitelist .setting-content').append(this_ui.create_list_rule_elem(WHITELIST, rule));
                 }
             });
@@ -517,7 +516,7 @@
             );
 
             // Remove rule
-            elem.find('.pm-list-rule-remove-button').on('click', function() {
+            elem.find('.pm-list-rule-remove-button').on('click', function () {
                 elem.remove();
                 list.remove_rule(userProp);
 
@@ -525,7 +524,7 @@
             });
 
             // Modify rule value
-            elem.find('.rule-input').on('change', function(elem) {
+            elem.find('.rule-input').on('change', function (elem) {
                 userProp.set_val(elem.currentTarget.value);
             });
 
