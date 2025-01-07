@@ -133,21 +133,15 @@
 
         /* Obtain whether or not any property of an user is muteable */
         should_mute_user(user) {
-            let should_mute = false;
-
-            // Ignores by default unless any user property matches
-            this.userProps.forEach((userProp) => {
-                should_mute =
-                    should_mute ||
+            return this.userProps.some(
+                (userProp) =>
                     // Name matches regex
-                    (userProp.prop_type === Enum_UserProps.NAME && new RegExp(userProp.prop_val).exec(user.name) !== null) ||
+                    (userProp.prop_type === Enum_UserProps.NAME && new RegExp(userProp.prop_val).test(user.name)) ||
                     // ID matches
                     (userProp.prop_type === Enum_UserProps.ID && user.id === userProp.prop_val) ||
                     // Tripcode matches
-                    (userProp.prop_type === Enum_UserProps.TRIPCODE && user.tripcode === userProp.prop_val);
-            });
-
-            return should_mute;
+                    (userProp.prop_type === Enum_UserProps.TRIPCODE && user.tripcode === userProp.prop_val)
+            );
         }
     }
 
@@ -169,20 +163,19 @@
             let should_mute = true;
 
             // Mutes by default unless any user property matches
-            this.userProps.forEach((userProp) => {
-                should_mute =
-                    should_mute &&
+            return this.userProps.every(
+                (userProp) =>
                     !(
                         // Name matches regex
                         (
-                            (userProp.prop_type === Enum_UserProps.NAME && new RegExp(userProp.prop_val).exec(user.name) !== null) ||
+                            (userProp.prop_type === Enum_UserProps.NAME && new RegExp(userProp.prop_val).test(user.name)) ||
                             // ID matches
                             (userProp.prop_type === Enum_UserProps.ID && user.id === userProp.prop_val) ||
                             // Tripcode matches
                             (userProp.prop_type === Enum_UserProps.TRIPCODE && user.tripcode === userProp.prop_val)
                         )
-                    );
-            });
+                    )
+            );
 
             return should_mute;
         }
