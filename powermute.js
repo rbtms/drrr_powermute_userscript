@@ -11,7 +11,7 @@
 // TODO: As it gets the list of users from the API on setup, it can not hide messages from
 //       users who are not currently in the room but have messages on the log
 
-(function (jQuery) {
+(async function (jQuery) {
     'use strict';
     const API_URL = 'https://drrr.com/room/?api=json';
 
@@ -485,23 +485,25 @@
 
     class Websocket {
         /* Handle self connect */
-        handle_connect() {
-            fetch(API_URL)
-                .then((res) => res.json())
-                .then((data) => {
-                    data['room']['users'].forEach((user_json) => {
-                        const user = new User(user_json);
+        async handle_connect() {
+            const res = await fetch(API_URL);
+            const data = await res.json();
 
-                        if (CURRENT_LIST.should_mute_user(user)) {
-                            UI.hide_messages_with_name(user.name);
-                        }
-                    });
+            try {
+                for (const user_json of data['room']['users']) {
+                    const user = new User(user_json);
 
-                    data['room']['talks'].forEach((talk) => {
-                        // TODO
-                    });
-                })
-                .catch((err) => console.log("Couldn't parse API data", err));
+                    if (CURRENT_LIST.should_mute_user(user)) {
+                        UI.hide_messages_with_name(user.name);
+                    }
+                }
+
+                for (const talk of data['room']['talks']) {
+                    // TODO
+                }
+            } catch (error) {
+                console.error("Couldn't parse API data", error);
+            }
         }
 
         /* Handle a new talk */
@@ -539,7 +541,7 @@
         }
 
         /* Dispatch a WS event */
-        dispatch_event(event, data) {
+        async dispatch_event(event, data) {
             let is_event_blocked = false;
 
             console.info('[DRRR Power Mute] Event', {
@@ -550,7 +552,7 @@
             const ignored_events = ['disconnect'];
 
             if (event == 'connect') {
-                this.handle_connect();
+                await this.handle_connect();
             } else if (event == 'new-talk') {
                 is_event_blocked = this.handle_new_talk(data);
             } else if (ignored_events.includes(event)) {
@@ -563,7 +565,7 @@
         }
 
         /* Hook and dispatch Websocket incoming messages */
-        hook() {
+        async hook() {
             // Store the original Socket.IO implementation
             const originalSocketIO = window.io;
 
@@ -584,7 +586,7 @@
                 const originalOn = socket.on;
 
                 socket.on = function (event, callback) {
-                    return originalOn.call(this, event, function () {
+                    return originalOn.call(this, event, async function () {
                         const data = Array.prototype.slice.call(arguments);
                         // Whether to return the event to the original handler. This should be false for blocked elements
                         let is_event_blocked = false;
@@ -592,7 +594,7 @@
                         // Wrapped so that the event is sent back normally whatever happens
                         try {
                             if (SETTINGS.is_enabled()) {
-                                is_event_blocked = this_websocket.dispatch_event(event, data);
+                                is_event_blocked = await this_websocket.dispatch_event(event, data);
                             }
                         } catch (err) {
                             console.error('[DRRR Power Mute] dispatch_event:', err);
@@ -618,9 +620,9 @@
         }
     }
 
-    function main() {
+    async function main() {
         console.info('[DRRR Power Mute] Script loaded');
-        new Websocket().hook();
+        await new Websocket().hook();
         console.info('[DRRR Power Mute] Setup complete');
     }
 
@@ -634,5 +636,5 @@
     UI.populate_list_rules(BLACKLIST);
     UI.populate_list_rules(WHITELIST);
 
-    main();
+    await main();
 })($);
