@@ -77,9 +77,11 @@
         }
     }
 
+    // Abstract class
     class BlackWhiteList {
         constructor() {
             this.userProps = [];
+            this.name = 'BlackWhiteList'; // Placeholder value
         }
 
         add_elem(elem) {
@@ -93,14 +95,35 @@
         add_user_prop(prop_type, prop_val) {
             this.add_elem(new MutedUserProp(prop_type, prop_val));
         }
+
+        save_to_storage() {
+            const json = this.userProps
+                .map( prop => [prop.prop_type.description, prop.prop_val] );
+            
+            localStorage.setItem('PM_' + this.name, JSON.stringify(json));
+            console.info('[DRRR Power Mute] SAVED ' + this.name + ' TO STORAGE', JSON.stringify(json));
+        }
+
+        load_from_storage() {
+            const json_str = localStorage.getItem('PM_' + this.name);
+
+            if( json_str !== null ) {
+                this.userProps = JSON.parse(json_str)
+                    .map( prop => new MutedUserProp(Enum_UserProps[prop[0]], prop[1]) );
+                
+                console.log('[DRRR Power Mute] LOADED ' + this.name + ' FROM STORAGE', this.userProps);
+            } else {
+                this.save_to_storage();
+            }
+        }
     }
 
     class BlackList extends BlackWhiteList {
         constructor() {
             super();
 
-            this.name = 'blacklist';
-            
+            this.name = 'Blacklist';
+
             // Mock data
             this.add_user_prop(Enum_UserProps.NAME, 'Roboto');
             this.add_user_prop(Enum_UserProps.NAME, 'test');
@@ -110,15 +133,18 @@
             this.add_user_prop(Enum_UserProps.TRIPCODE, 'Test4');
             this.add_user_prop(Enum_UserProps.ID, 'Test5');
             this.add_user_prop(Enum_UserProps.TRIPCODE, 'Test6');
+
+            this.load_from_storage();
+
         }
 
         /* Obtain whether or not any property of an user is muteable */
-        is_user_muteable(user) {
-            let is_muteable = false;
+        should_mute_user(user) {
+            let should_mute = false;
 
             // Ignores by default unless any user property matches
             this.userProps.forEach( (userProp) => {
-                is_muteable = is_muteable || (
+                should_mute = should_mute || (
                     // Name matches regex
                     (userProp.prop_type === Enum_UserProps.NAME && new RegExp(userProp.prop_val).exec(user.name) !== null)
                     // ID matches
@@ -128,7 +154,7 @@
                 );
             });
 
-            return is_muteable;
+            return should_mute;
         }
     }
 
@@ -136,7 +162,9 @@
         constructor() {
             super();
 
-            this.name = 'whitelist';
+            this.name = 'Whitelist';
+
+            this.load_from_storage();
 
             // Mock data
             this.add_user_prop(Enum_UserProps.NAME, 'test');
@@ -145,7 +173,6 @@
 
         /* Obtain whether or not any property of an user is muteable */
         is_user_muteable(user) {
-            console.log('WHITELIIIIIIIIIIIIIIIIIIIIIIIIIIIIIST');
             let is_muteable = true;
 
             // Mutes by default unless any user property matches
@@ -280,10 +307,14 @@
                 <div role="tabpanel" class="tab-pane" id="settings-blacklist">
                     <div class="setting-content"></div>
                     <div class="blacklist-save-button-container" style="align: center">
-                        <input type="submit" id="blacklist-save-button" class="form-control list-save-button" name="post" value="Add rule" tabindex="3" style="display: inline-block; max-width:49%;">
+                        <input type="submit" id="blacklist-add-rule-button" class="form-control list-add-rule-button" name="post" value="Add rule" tabindex="3" style="display: inline-block; max-width:49%;">
                         <input type="submit" id="blacklist-save-button" class="form-control list-save-button" name="post" value="Save" tabindex="3" style="display: inline-block; max-width:49%;">
                     </div>
             </div>`);
+
+            panel_blacklist.find('#blacklist-save-button').on('click', function() {
+                BLACKLIST.save_to_storage();
+            });
 
             return [tab_blacklist, panel_blacklist];
         }
@@ -425,7 +456,7 @@
                     data['room']['users'].forEach( user_json => {
                         const user = new User(user_json);
 
-                        if( CURRENT_LIST.is_user_muteable(user) ) {
+                        if( CURRENT_LIST.should_mute_user(user) ) {
                             UI.hide_messages_with_name(user.name);
                         }
                     });
@@ -448,14 +479,14 @@
             talks.forEach( talk => {
                 // New message
                 if( talk.type === 'message' ) {
-                    is_event_blocked = CURRENT_LIST.is_user_muteable(talk.user);
+                    is_event_blocked = CURRENT_LIST.should_mute_user(talk.user);
                 // User gets in
                 } else if( talk.type === 'join' || (talk.type === 'user-profile' && talk.reason != 'leave') ) {
                     console.info('[DRRR Power Mute] USER INCOMING', talk.user);
-                    is_event_blocked = CURRENT_LIST.is_user_muteable(talk.user);
+                    is_event_blocked = CURRENT_LIST.should_mute_user(talk.user);
                 } else if( talk.type === 'leave' || (talk.type === 'user-profile' && talk.reason == 'leave') ) {
                     console.info('[DRRR Power Mute] USER OUTGOING', talk.user);
-                    is_event_blocked = CURRENT_LIST.is_user_muteable(talk.user);
+                    is_event_blocked = CURRENT_LIST.should_mute_user(talk.user);
                 } else if( ignored_types.includes(talk.type) ) {
                     // Ignore
                 } else {
@@ -468,7 +499,7 @@
         
         /* Handle the connection or leave of a user */
         handle_user(user) {
-            if( CURRENT_LIST.is_user_muteable(user) ) {
+            if( CURRENT_LIST.should_mute_user(user) ) {
                 UI.hide_messages_with_name(user.name);
             }
         }
