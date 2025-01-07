@@ -71,29 +71,62 @@
             this.prop_type = prop_type;
             this.prop_val = prop_val;
         }
+
+        set_val(val) {
+            this.prop_val = val;
+        }
     }
 
     // Abstract class
     class BlackWhiteList {
         constructor() {
-            this.userProps = [];
+            this.rules = [];
             this.name = 'BlackWhiteList'; // Placeholder value
         }
 
         add_elem(elem) {
-            this.userProps.push(elem);
+            this.rules.push(elem);
         }
 
         get_elems() {
-            return this.userProps;
+            return this.rules;
         }
 
-        add_user_prop(prop_type, prop_val) {
-            this.add_elem(new MutedUserProp(prop_type, prop_val));
+        add_rule(rule) {
+            const has_rule = this.rules.some( _rule => {
+                _rule.prop_type === rule.prop_type && _rule.prop_val === rule.prop_val
+            });
+
+            const is_empty = rule.prop_val === '';
+
+            // Add rule only if it doesn't exist aleady, except if it's empty.
+            // In any case empty rules are filtered on save
+            if(!has_rule) {
+                this.add_elem(rule);
+                return true;
+            } else {
+                alert('Rule already exists');
+                return false;
+            }
+        }
+
+        remove_rule(rule) {
+            console.log('CALLED: remove_rule');
+
+            for(const _rule of this.rules) {
+                if( _rule.prop_type === rule.prop_type && _rule.prop_val === rule.prop_val ) {
+                    console.log('RULE FOUND');
+                    
+                    this.rules.splice(this.rules.indexOf(rule), 1);
+                } else {
+                    console.log('RULE NOT FOUND', rule, _rule);
+                }
+            }
         }
 
         save_to_storage() {
-            const json = this.userProps.map((prop) => [prop.prop_type.description, prop.prop_val]);
+            const json = this.rules.filter( rule => rule.prop_val != '' )
+                .map((rule) => [rule.prop_type.description, rule.prop_val]);
 
             localStorage.setItem('PM_' + this.name, JSON.stringify(json));
             console.info('[DRRR Power Mute] SAVED ' + this.name + ' TO STORAGE', JSON.stringify(json));
@@ -103,9 +136,9 @@
             const json_str = localStorage.getItem('PM_' + this.name);
 
             if (json_str !== null) {
-                this.userProps = JSON.parse(json_str).map((prop) => new MutedUserProp(Enum_UserProps[prop[0]], prop[1]));
+                this.rules = JSON.parse(json_str).map((prop) => new MutedUserProp(Enum_UserProps[prop[0]], prop[1]));
 
-                console.log('[DRRR Power Mute] LOADED ' + this.name + ' FROM STORAGE', this.userProps);
+                console.log('[DRRR Power Mute] LOADED ' + this.name + ' FROM STORAGE', this.rules);
             } else {
                 this.save_to_storage();
             }
@@ -119,21 +152,21 @@
             this.name = 'Blacklist';
 
             // Mock data
-            this.add_user_prop(Enum_UserProps.NAME, 'Roboto');
-            this.add_user_prop(Enum_UserProps.NAME, 'test');
-            this.add_user_prop(Enum_UserProps.ID, 'Test1');
-            this.add_user_prop(Enum_UserProps.TRIPCODE, 'Test2');
-            this.add_user_prop(Enum_UserProps.ID, 'Test3');
-            this.add_user_prop(Enum_UserProps.TRIPCODE, 'Test4');
-            this.add_user_prop(Enum_UserProps.ID, 'Test5');
-            this.add_user_prop(Enum_UserProps.TRIPCODE, 'Test6');
+            this.add_rule(new MutedUserProp(Enum_UserProps.NAME, 'Roboto'));
+            this.add_rule(new MutedUserProp(Enum_UserProps.NAME, 'test'));
+            this.add_rule(new MutedUserProp(Enum_UserProps.ID, 'Test1'));
+            this.add_rule(new MutedUserProp(Enum_UserProps.TRIPCODE, 'Test2'));
+            this.add_rule(new MutedUserProp(Enum_UserProps.ID, 'Test3'));
+            this.add_rule(new MutedUserProp(Enum_UserProps.TRIPCODE, 'Test4'));
+            this.add_rule(new MutedUserProp(Enum_UserProps.ID, 'Test5'));
+            this.add_rule(new MutedUserProp(Enum_UserProps.TRIPCODE, 'Test6'));
 
             this.load_from_storage();
         }
 
         /* Obtain whether or not any property of an user is muteable */
         should_mute_user(user) {
-            return this.userProps.some(
+            return this.rules.some(
                 (userProp) =>
                     // Name matches regex
                     (userProp.prop_type === Enum_UserProps.NAME && new RegExp(userProp.prop_val).test(user.name)) ||
@@ -154,8 +187,8 @@
             this.load_from_storage();
 
             // Mock data
-            this.add_user_prop(Enum_UserProps.NAME, 'test');
-            this.add_user_prop(Enum_UserProps.NAME, 'SomeUser2');
+            this.add_rule(new MutedUserProp(Enum_UserProps.NAME, 'test'));
+            this.add_rule(new MutedUserProp(Enum_UserProps.NAME, 'SomeUser2'));
         }
 
         /* Obtain whether or not any property of an user is muteable */
@@ -163,7 +196,7 @@
             let should_mute = true;
 
             // Mutes by default unless any user property matches
-            return this.userProps.every(
+            return this.rules.every(
                 (userProp) =>
                     !(
                         // Name matches regex
@@ -313,10 +346,12 @@
             const this_ui = this;
             // Add rule button
             panel_blacklist.find('#blacklist-add-rule-button').on('click', function () {
-                BLACKLIST.add_user_prop(Enum_UserProps['NAME'], '');
-                const default_userprop = new MutedUserProp(Enum_UserProps['NAME'], '');
+                const rule = new MutedUserProp(Enum_UserProps.NAME, '')
+                const added_rule = BLACKLIST.add_rule(rule);
 
-                jQuery('#settings-Blacklist .setting-content').append(this_ui.create_list_rule_elem(default_userprop));
+                if( added_rule ) {
+                    jQuery('#settings-Blacklist .setting-content').append(this_ui.create_list_rule_elem(BLACKLIST, rule));
+                }
             });
 
             return [tab_blacklist, panel_blacklist];
@@ -440,10 +475,10 @@
         }
 
         // Rule DOM element builder method
-        create_list_rule_elem(userProp) {
+        create_list_rule_elem(list, userProp) {
             const text_id = Math.ceil(Math.random() * 10000).toString();
 
-            return jQuery(
+            const elem = jQuery(
                 `<div class="input-group input-group-sm pm-rule-container" style="padding-bottom: 6px">
                 <span for="pm-list-rule-` +
                     text_id +
@@ -452,17 +487,32 @@
                     `</span>
                 <input type="text" id="pm-list-rule-` +
                     text_id +
-                    `" name="list_rule" class="form-control form-inline input-sm" 
+                    `" name="list_rule" class="form-control rule-input form-inline input-sm" 
                     value="` +
                     userProp.prop_val +
                     `">
                 <span class="input-group-btn">
-                    <input type="button" name="play" class="btn btn-default btn-sm pm-list-rule-` +
+                    <input type="button" name="play" class="btn btn-default btn-sm pm-list-rule-remove-button pm-list-rule-` +
                     text_id +
                     `" value="X">
                 </span>
             </div>`
             );
+
+            // Remove rule
+            elem.find('.pm-list-rule-remove-button').on('click', function() {
+                elem.remove();
+                list.remove_rule(userProp);
+
+                console.info('[DRRR Power Mute] Removed rule from ' + list.name + ':', userProp);
+            });
+
+            // Modify rule value
+            elem.find('.rule-input').on('change', function(elem) {
+                userProp.set_val(elem.currentTarget.value);
+            });
+
+            return elem;
         }
 
         // Add the rules to the setting panel of a given list
@@ -471,7 +521,8 @@
             const userProps = list.get_elems();
 
             userProps.forEach((userProp) => {
-                jQuery('#settings-' + list.name + ' .setting-content').append(this.create_list_rule_elem(userProp));
+                const rule = this.create_list_rule_elem(list, userProp);
+                jQuery('#settings-' + list.name + ' .setting-content').append(rule);
             });
         }
     }
