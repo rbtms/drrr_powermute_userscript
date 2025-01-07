@@ -129,6 +129,8 @@
                 .map((rule) => [rule.prop_type.description, rule.prop_val]);
 
             localStorage.setItem('PM_' + this.name, JSON.stringify(json));
+            
+            alert(this.name + ' saved');
             console.info('[DRRR Power Mute] SAVED ' + this.name + ' TO STORAGE', JSON.stringify(json));
         }
 
@@ -184,17 +186,15 @@
 
             this.name = 'Whitelist';
 
-            this.load_from_storage();
-
             // Mock data
             this.add_rule(new MutedUserProp(Enum_UserProps.NAME, 'test'));
             this.add_rule(new MutedUserProp(Enum_UserProps.NAME, 'SomeUser2'));
+
+            this.load_from_storage();
         }
 
         /* Obtain whether or not any property of an user is muteable */
         should_mute_user(user) {
-            let should_mute = true;
-
             // Mutes by default unless any user property matches
             return this.rules.every(
                 (userProp) =>
@@ -209,8 +209,6 @@
                         )
                     )
             );
-
-            return should_mute;
         }
     }
 
@@ -368,9 +366,28 @@
 
             const panel_whitelist = jQuery(`
                 <div role="tabpanel" class="tab-pane" id="settings-Whitelist">
-                    <div class="setting-content">
+                    <div class="setting-content"></div>
+                    <div class="whitelist-save-button-container" style="align: center">
+                        <input type="submit" id="whitelist-add-rule-button" class="form-control list-add-rule-button" name="post" value="Add rule" tabindex="3" style="display: inline-block; max-width:49%;">
+                        <input type="submit" id="whitelist-save-button" class="form-control list-save-button" name="post" value="Save" tabindex="3" style="display: inline-block; max-width:49%;">
                     </div>
             </div>`);
+
+            // Save button
+            panel_whitelist.find('#whitelist-save-button').on('click', function () {
+                WHITELIST.save_to_storage();
+            });
+
+            const this_ui = this;
+            // Add rule button
+            panel_whitelist.find('#whitelist-add-rule-button').on('click', function () {
+                const rule = new MutedUserProp(Enum_UserProps.NAME, '')
+                const added_rule = WHITELIST.add_rule(rule);
+
+                if( added_rule ) {
+                    jQuery('#settings-Whitelist .setting-content').append(this_ui.create_list_rule_elem(WHITELIST, rule));
+                }
+            });
 
             return [tab_whitelist, panel_whitelist];
         }
