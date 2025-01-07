@@ -46,10 +46,7 @@
             // 'user-profile' talks have it on an element called '+' or '-', which is an array
             // and presumely indicates if an user enters or leaves the room
             this.user = new User(
-                talk['from'] ||
-                    talk['user'] ||
-                    (talk['+'] ? talk['+'][0] : false) ||
-                    (talk['-'] ? talk['-'][0] : false)
+                talk['from'] || talk['user'] || (talk['+'] ? talk['+'][0] : false) || (talk['-'] ? talk['-'][0] : false)
             );
         }
 
@@ -66,8 +63,7 @@
             this.icon = user_json.icon;
             this.id = user_json.id;
             this.name = user_json.name;
-            this.tripcode =
-                user_json.tripcode == false ? '' : user_json.tripcode;
+            this.tripcode = user_json.tripcode == false ? '' : user_json.tripcode;
         }
     }
 
@@ -119,14 +115,11 @@
             return this.userProps.some(
                 (userProp) =>
                     // Name matches regex
-                    (userProp.prop_type === Enum_UserProps.NAME &&
-                        new RegExp(userProp.prop_val).test(user.name)) ||
+                    (userProp.prop_type === Enum_UserProps.NAME && new RegExp(userProp.prop_val).test(user.name)) ||
                     // ID matches
-                    (userProp.prop_type === Enum_UserProps.ID &&
-                        user.id === userProp.prop_val) ||
+                    (userProp.prop_type === Enum_UserProps.ID && user.id === userProp.prop_val) ||
                     // Tripcode matches
-                    (userProp.prop_type === Enum_UserProps.TRIPCODE &&
-                        user.tripcode === userProp.prop_val)
+                    (userProp.prop_type === Enum_UserProps.TRIPCODE && user.tripcode === userProp.prop_val)
             );
         }
     }
@@ -153,15 +146,11 @@
                         // Name matches regex
                         (
                             (userProp.prop_type === Enum_UserProps.NAME &&
-                                new RegExp(userProp.prop_val).test(
-                                    user.name
-                                )) ||
+                                new RegExp(userProp.prop_val).test(user.name)) ||
                             // ID matches
-                            (userProp.prop_type === Enum_UserProps.ID &&
-                                user.id === userProp.prop_val) ||
+                            (userProp.prop_type === Enum_UserProps.ID && user.id === userProp.prop_val) ||
                             // Tripcode matches
-                            (userProp.prop_type === Enum_UserProps.TRIPCODE &&
-                                user.tripcode === userProp.prop_val)
+                            (userProp.prop_type === Enum_UserProps.TRIPCODE && user.tripcode === userProp.prop_val)
                         )
                     )
             );
@@ -215,9 +204,7 @@
         }
 
         load_from_storage() {
-            const settings_json_str = localStorage.getItem(
-                this.KEY_LOCALSTORAGE
-            );
+            const settings_json_str = localStorage.getItem(this.KEY_LOCALSTORAGE);
 
             if (!settings_json_str) return this.save_to_storage();
 
@@ -226,8 +213,7 @@
 
             this._is_enabled = settings_json[this.KEY_IS_ENABLED];
             this._list_type = Enum_ListType[settings_json[this.KEY_LIST_TYPE]];
-            this._mute_user_if_no_tripcode =
-                settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE];
+            this._mute_user_if_no_tripcode = settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE];
         }
 
         save_to_storage() {
@@ -235,13 +221,9 @@
             const settings_json = {};
             settings_json[this.KEY_IS_ENABLED] = this._is_enabled;
             settings_json[this.KEY_LIST_TYPE] = this._list_type.description;
-            settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE] =
-                this._mute_user_if_no_tripcode;
+            settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE] = this._mute_user_if_no_tripcode;
 
-            localStorage.setItem(
-                this.KEY_LOCALSTORAGE,
-                JSON.stringify(settings_json)
-            );
+            localStorage.setItem(this.KEY_LOCALSTORAGE, JSON.stringify(settings_json));
             console.info('[DRRR Power Mute] SAVED SETTINGS', settings_json);
         }
 
@@ -265,14 +247,10 @@
             console.info('MUTING USER WITH NAME', name);
 
             // Talks from a specific user
-            const talks = jQuery('#talks div.name').filter(
-                (_, elem) => elem.children[0].textContent === name
-            );
+            const talks = jQuery('#talks div.name').filter((_, elem) => elem.children[0].textContent === name);
 
             // System messages from a specific user
-            const messages = jQuery('#talks span.name').filter(
-                (_, elem) => elem.textContent === name
-            );
+            const messages = jQuery('#talks span.name').filter((_, elem) => elem.textContent === name);
 
             talks
                 .toArray()
@@ -368,9 +346,7 @@
                             <input type="range" id="list-switch" name="list-switch min="0" max="1" style="max-width: 10%; display: inline-block;"
                                 ` +
                     'value=' +
-                    (SETTINGS.get_list_type() === Enum_ListType.BLACKLIST
-                        ? 0
-                        : 1) +
+                    (SETTINGS.get_list_type() === Enum_ListType.BLACKLIST ? 0 : 1) +
                     `>
                                 <h5 class="mb-0" style="display: inline-block"> Whitelist</h5>
                         </div>
@@ -393,58 +369,33 @@
             */
 
             // Enable/disable checkbox
-            panel_pm_settings
-                .find('#checkbox-pm-settings-enable')
-                .on('click', function (elem) {
-                    SETTINGS.set_enabled(elem.currentTarget.checked);
-                });
+            panel_pm_settings.find('#checkbox-pm-settings-enable').on('click', function (elem) {
+                SETTINGS.set_enabled(elem.currentTarget.checked);
+            });
 
             // Blacklist/whitelist switch
-            panel_pm_settings
-                .find('#list-switch')
-                .on('change', function (elem) {
-                    // 0: Blacklist, 1: Whitelist
-                    const list_type =
-                        elem.currentTarget.value == 0
-                            ? Enum_ListType.BLACKLIST
-                            : Enum_ListType.WHITELIST;
-                    SETTINGS.set_list_type(list_type);
-                });
+            panel_pm_settings.find('#list-switch').on('change', function (elem) {
+                // 0: Blacklist, 1: Whitelist
+                const list_type = elem.currentTarget.value == 0 ? Enum_ListType.BLACKLIST : Enum_ListType.WHITELIST;
+                SETTINGS.set_list_type(list_type);
+            });
 
             // Mute people with no tripcode checkbox
-            panel_pm_settings
-                .find('#checkbox-pm-settings-mute-no-trip')
-                .on('click', function (elem) {
-                    SETTINGS.set_mute_user_if_no_tripcode(
-                        elem.currentTarget.checked
-                    );
-                });
+            panel_pm_settings.find('#checkbox-pm-settings-mute-no-trip').on('click', function (elem) {
+                SETTINGS.set_mute_user_if_no_tripcode(elem.currentTarget.checked);
+            });
 
             return [tab_pm_settings, panel_pm_settings];
         }
 
         add_settings_tabs() {
-            const [tab_blacklist, panel_blacklist] =
-                this.create_blacklist_tab();
-            const [tab_whitelist, panel_whitelist] =
-                this.create_whitelist_tab();
-            const [tab_pm_messages, panel_pm_messages] =
-                this.create_messages_tab();
-            const [tab_pm_settings, panel_pm_settings] =
-                this.create_pm_settings_tab();
+            const [tab_blacklist, panel_blacklist] = this.create_blacklist_tab();
+            const [tab_whitelist, panel_whitelist] = this.create_whitelist_tab();
+            const [tab_pm_messages, panel_pm_messages] = this.create_messages_tab();
+            const [tab_pm_settings, panel_pm_settings] = this.create_pm_settings_tab();
 
-            jQuery('.nav.nav-tabs').append(
-                tab_blacklist,
-                tab_whitelist,
-                tab_pm_messages,
-                tab_pm_settings
-            );
-            jQuery('.tab-content').append(
-                panel_blacklist,
-                panel_whitelist,
-                panel_pm_messages,
-                panel_pm_settings
-            );
+            jQuery('.nav.nav-tabs').append(tab_blacklist, tab_whitelist, tab_pm_messages, tab_pm_settings);
+            jQuery('.tab-content').append(panel_blacklist, panel_whitelist, panel_pm_messages, panel_pm_settings);
         }
 
         // Rule DOM element builder method
@@ -478,9 +429,7 @@
             const userProps = list.get_elems();
 
             for (const userProp of userProps) {
-                jQuery('#settings-' + list.name + ' .setting-content').append(
-                    this.create_list_rule_elem(userProp)
-                );
+                jQuery('#settings-' + list.name + ' .setting-content').append(this.create_list_rule_elem(userProp));
             }
         }
     }
@@ -519,25 +468,16 @@
                 if (talk.type === 'message') {
                     is_event_blocked = CURRENT_LIST.is_user_muteable(talk.user);
                     // User gets in
-                } else if (
-                    talk.type === 'join' ||
-                    (talk.type === 'user-profile' && talk.reason != 'leave')
-                ) {
+                } else if (talk.type === 'join' || (talk.type === 'user-profile' && talk.reason != 'leave')) {
                     console.info('[DRRR Power Mute] USER INCOMING', talk.user);
                     is_event_blocked = CURRENT_LIST.is_user_muteable(talk.user);
-                } else if (
-                    talk.type === 'leave' ||
-                    (talk.type === 'user-profile' && talk.reason == 'leave')
-                ) {
+                } else if (talk.type === 'leave' || (talk.type === 'user-profile' && talk.reason == 'leave')) {
                     console.info('[DRRR Power Mute] USER OUTGOING', talk.user);
                     is_event_blocked = CURRENT_LIST.is_user_muteable(talk.user);
                 } else if (ignored_types.includes(talk.type)) {
                     // Ignore
                 } else {
-                    console.log(
-                        'handle_new_talk: Unknown talk type:',
-                        talk.type
-                    );
+                    console.log('handle_new_talk: Unknown talk type:', talk.type);
                 }
             });
 
@@ -569,10 +509,7 @@
             } else if (ignored_events.includes(event)) {
                 // Ignore
             } else {
-                console.log(
-                    '[DRRR Power Mute] dispatch_event: Unrecognized event:',
-                    event
-                );
+                console.log('[DRRR Power Mute] dispatch_event: Unrecognized event:', event);
             }
 
             return is_event_blocked;
@@ -584,9 +521,7 @@
             const originalSocketIO = window.io;
 
             if (!originalSocketIO) {
-                console.error(
-                    '[DRRR Power Mute] Socket.IO not found on page load'
-                );
+                console.error('[DRRR Power Mute] Socket.IO not found on page load');
                 return;
             }
 
@@ -610,17 +545,10 @@
                         // Wrapped so that the event is sent back normally whatever happens
                         try {
                             if (SETTINGS.is_enabled()) {
-                                is_event_blocked =
-                                    await this_websocket.dispatch_event(
-                                        event,
-                                        data
-                                    );
+                                is_event_blocked = await this_websocket.dispatch_event(event, data);
                             }
                         } catch (err) {
-                            console.error(
-                                '[DRRR Power Mute] dispatch_event:',
-                                err
-                            );
+                            console.error('[DRRR Power Mute] dispatch_event:', err);
                         }
 
                         if (!is_event_blocked) {
@@ -654,10 +582,7 @@
     const BLACKLIST = new BlackList();
     const WHITELIST = new WhiteList();
 
-    const CURRENT_LIST =
-        SETTINGS.get_list_type() === Enum_ListType.BLACKLIST
-            ? BLACKLIST
-            : WHITELIST;
+    const CURRENT_LIST = SETTINGS.get_list_type() === Enum_ListType.BLACKLIST ? BLACKLIST : WHITELIST;
 
     UI.populate_list_rules(BLACKLIST);
     UI.populate_list_rules(WHITELIST);
