@@ -341,7 +341,8 @@
 
                         <div id="pm-list-switch">
                                 <h5 class="mb-0" style="display: inline-block">Blacklist</h5>
-                            <input type="range" id="list-switch" name="list-switch min="0" max="1" style="max-width: 10%; display: inline-block;">
+                            <input type="range" id="list-switch" name="list-switch min="0" max="1" style="max-width: 10%; display: inline-block;"
+                                ` + "value=" + (SETTINGS.get_list_type() === Enum_ListType.BLACKLIST ? 0 : 1) + `>
                                 <h5 class="mb-0" style="display: inline-block"> Whitelist</h5>
                         </div>
                         
