@@ -338,6 +338,12 @@
                                     <h5 class="mb-0">Enable PowerMute </h5>
                             </div></label>
                         </div>
+
+                        <div id="pm-list-switch">
+                                <h5 class="mb-0" style="display: inline-block">Blacklist</h5>
+                            <input type="range" id="list-switch" name="list-switch min="0" max="1" style="max-width: 10%; display: inline-block;">
+                                <h5 class="mb-0" style="display: inline-block"> Whitelist</h5>
+                        </div>
                         
                         <div id="pm-settings-mute-no-trip" class="checkbox">
                             <label><div>
@@ -355,15 +361,20 @@
 
             // Enable/disable checkbox
             panel_pm_settings.find('#checkbox-pm-settings-enable').on('click', function(elem) {
-                console.info('[DRRR Power Mute | Settings] Enabled:', elem.currentTarget.checked);
                 SETTINGS.set_enabled(elem.currentTarget.checked);
-            })
+            });
+
+            // Blacklist/whitelist switch
+            panel_pm_settings.find('#list-switch').on('change', function(elem) {
+                // 0: Blacklist, 1: Whitelist
+                const list_type = elem.currentTarget.value == 0 ? Enum_ListType.BLACKLIST : Enum_ListType.WHITELIST;
+                SETTINGS.set_list_type(list_type);
+            });
 
             // Mute people with no tripcode checkbox
             panel_pm_settings.find('#checkbox-pm-settings-mute-no-trip').on('click', function(elem) {
-                console.info('[DRRR Power Mute | Settings] Mute user if no trip:', elem.currentTarget.checked);
                 SETTINGS.set_mute_user_if_no_tripcode(elem.currentTarget.checked);
-            })
+            });
 
             return [tab_pm_settings, panel_pm_settings];
         }
