@@ -145,6 +145,7 @@
 
         /* Obtain whether or not any property of an user is muteable */
         is_user_muteable(user) {
+            console.log('WHITELIIIIIIIIIIIIIIIIIIIIIIIIIIIIIST');
             let is_muteable = true;
 
             // Mutes by default unless any user property matches
@@ -167,7 +168,10 @@
     class Settings {
         constructor() {
             // Default values
-            this.LOCALSTORAGE_KEY = 'PM_Settings';
+            this.KEY_LOCALSTORAGE = 'PM_Settings';
+            this.KEY_IS_ENABLED = 'is_enabled';
+            this.KEY_LIST_TYPE = 'list_type';
+            this.KEY_MUTE_USER_IF_NO_TRIPCODE = 'mute_user_if_no_tripcode';
 
             // If the muting is enabled
             this._is_enabled = true;
@@ -207,25 +211,30 @@
         }
     
         load_from_storage() {
-            const settings_json_str = localStorage.getItem(this.LOCALSTORAGE_KEY);
+            const settings_json_str = localStorage.getItem(this.KEY_LOCALSTORAGE);
             
             if( settings_json_str !== null ) {
-                const settings_json = JSON.parse(settings_json);
+                const settings_json = JSON.parse(settings_json_str);
+                console.info('[DRRR Power Mute] LOADED SETTINGS', settings_json);
                 
-                this._is_enabled = settings_json['is_enabled'];
-                this._list_type = settings_json['list_type'];
-                this._mute_user_if_no_tripcode = settings_json['mute_user_if_no_tripcode'];
+                this._is_enabled = settings_json[this.KEY_IS_ENABLED];
+                this._list_type = Enum_ListType[settings_json[this.KEY_LIST_TYPE]];
+                this._mute_user_if_no_tripcode = settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE];
+            } else {
+                // Initial localstorage save
+                this.save_to_storage();
             }
         }
 
         save_to_storage() {
-            const settings_json = {
-                'is_enabled': this._is_enabled,
-                'list_type': this._list_type.description,
-                'mute_user_if_no_tripcode': this._mute_user_if_no_tripcode
-            };
+            // this. can't be used as a json key
+            const settings_json = {};
+            settings_json[this.KEY_IS_ENABLED] = this._is_enabled;
+            settings_json[this.KEY_LIST_TYPE] = this._list_type.description;
+            settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE] = this._mute_user_if_no_tripcode;
 
-            localStorage.setItem(this.LOCALSTORAGE_KEY, JSON.stringify(settings_json));
+            localStorage.setItem(this.KEY_LOCALSTORAGE, JSON.stringify(settings_json));
+            console.info('[DRRR Power Mute] SAVED SETTINGS', settings_json);
         }
     
         export() {
@@ -542,6 +551,7 @@
     const UI = new _UI();
     const BLACKLIST = new BlackList();
     const WHITELIST = new WhiteList();
+
     const CURRENT_LIST = SETTINGS.get_list_type() === Enum_ListType.BLACKLIST ? BLACKLIST : WHITELIST;
 
     UI.populate_list_rules(BLACKLIST);
