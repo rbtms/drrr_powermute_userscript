@@ -496,23 +496,22 @@
 
             const elem = jQuery(
                 `<div class="input-group input-group-sm pm-rule-container" style="padding-bottom: 6px">
-                <span for="pm-list-rule-` +
-                    text_id +
-                    `" class="input-group-addon list-rule-span" style="min-width: 15%">` +
-                    userProp.prop_type.description.toLowerCase() +
-                    `</span>
-                <input type="text" id="pm-list-rule-` +
-                    text_id +
-                    `" name="list_rule" class="form-control rule-input form-inline input-sm" 
-                    value="` +
-                    userProp.prop_val +
-                    `">
-                <span class="input-group-btn">
-                    <input type="button" name="play" class="btn btn-default btn-sm pm-list-rule-remove-button pm-list-rule-` +
-                    text_id +
-                    `" value="X">
-                </span>
-            </div>`
+                    <div class="input-group-btn">
+                        <button type="button" class="btn btn-default dropdown-toggle pm-list-rule-type-button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="min-width: 15%; border-radius: 0px;">
+                            ${userProp.prop_type.description} <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" class="dropdown-item" data-rule-type="${Enum_UserProps.NAME.description}">Name</a></li>
+                            <li><a href="#" class="dropdown-item" data-rule-type="${Enum_UserProps.ID.description}">ID</a></li>
+                            <li><a href="#" class="dropdown-item" data-rule-type="${Enum_UserProps.TRIPCODE.description}">Tripcode</a></li>
+                        </ul>
+                    </div>
+                    <input type="text" id="pm-list-rule-${text_id}" name="list_rule" class="form-control rule-input form-inline input-sm" 
+                        value="${userProp.prop_val}">
+                    <span class="input-group-btn">
+                        <input type="button" name="play" class="btn btn-default btn-sm pm-list-rule-remove-button pm-list-rule-${text_id}" value="X">
+                    </span>
+                </div>`
             );
 
             // Remove rule
@@ -526,6 +525,17 @@
             // Modify rule value
             elem.find('.rule-input').on('change', function (elem) {
                 userProp.set_val(elem.currentTarget.value);
+            });
+
+            // Change rule type
+            elem.find('.dropdown-menu .dropdown-item').on('click', function (event) {
+                event.preventDefault();
+                const selectedRuleType = jQuery(this).data('rule-type');
+                elem.find('.pm-list-rule-type-button')
+                    .text(selectedRuleType + ' ')
+                    .append('<span class="caret"></span>');
+                userProp.prop_type = Enum_UserProps[selectedRuleType.toUpperCase()];
+                console.info('[DRRR Power Mute] Changed rule type:', selectedRuleType, userProp);
             });
 
             return elem;
