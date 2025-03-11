@@ -45,6 +45,7 @@ class BlackWhiteList {
     }
 
     save_to_storage() {
+        console.log(this.rules);
         const json = this.rules.filter((rule) => rule.prop_val != '').map((rule) => [rule.prop_type.description, rule.prop_val]);
         localStorage.setItem('PM_' + this.name, JSON.stringify(json));
 

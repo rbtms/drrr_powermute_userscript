@@ -133,6 +133,7 @@
         }
     
         save_to_storage() {
+            console.log(this.rules);
             const json = this.rules.filter((rule) => rule.prop_val != '').map((rule) => [rule.prop_type.description, rule.prop_val]);
             localStorage.setItem('PM_' + this.name, JSON.stringify(json));
     
@@ -526,7 +527,7 @@
                 const added_rule = MUTED_MESSAGE_LIST.add_rule(rule);
     
                 if (added_rule) {
-                    jQuery('#settings-mutedmessagelist .setting-content').append(this_ui.create_list_rule_elem(MUTED_MESSAGE_LIST, rule));
+                    jQuery('#settings-MutedMessageList .setting-content').append(this_ui.create_list_rule_elem(MUTED_MESSAGE_LIST, rule));
                 }
             });
     
@@ -671,7 +672,11 @@
                     .append('<span class="caret"></span>');
     
                 // TODO: Save the type
-                userProp.prop_type = Enum_UserProps[selectedRuleType.toUpperCase()];
+                if(list.name === MutedMessageList.name) {
+                    userProp.prop_type = Enum_MutedMessageActions[selectedRuleType.toUpperCase()];
+                } else {
+                    userProp.prop_type = Enum_UserProps[selectedRuleType.toUpperCase()];
+                }
                 console.info('[DRRR Power Mute] Changed rule type:', selectedRuleType, userProp);
             });
     
