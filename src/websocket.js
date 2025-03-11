@@ -1,4 +1,10 @@
 class Websocket {
+    constructor() {
+        // Array with the last talks to detect spam
+        this.LAST_TALK_BUFFER = [];
+        this.LAST_TALK_BUFFER_MAX_SIZE = 10;
+    }
+
     /* Handle self connect */
     async handle_connect() {
         const res = await fetch(API_URL);
@@ -21,6 +27,35 @@ class Websocket {
         }
     }
 
+    append_talk_to_buffer(talk) {
+        const LAST_TALK_BUFFER_SIZE = 100;
+
+        if(this.LAST_TALK_BUFFER.length > this.LAST_TALK_BUFFER_MAX_SIZE) {
+            // Rotate buffer
+            for(let i = this.LAST_TALK_BUFFER_MAX_SIZE-1; i > 0; i--) {
+                this.LAST_TALK_BUFFER[i] = this.LAST_TALK_BUFFER[i-1];
+            }
+
+            this.LAST_TALK_BUFFER[0] = talk;
+        } else {
+            this.LAST_TALK_BUFFER.unshift(talk);
+        }
+    }
+
+    has_repeating_messages() {
+        // Straighforward but otherwise inefficient way of doing it
+        const repeating_messages_to_ban = 6;
+
+        for(let i = 1; i < repeating_messages_to_ban+1; i++) {
+            if(this.LAST_TALK_BUFFER.length <= i
+                || (this.LAST_TALK_BUFFER[0].message != this.LAST_TALK_BUFFER[i])) {
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
     /* Handle a new talk */
     handle_new_talk(data) {
         const talks = data.map((d) => new Talk(d));
@@ -35,6 +70,15 @@ class Websocket {
                 // TODO: Show UI message
                 if(MUTED_MESSAGE_LIST.should_process_talk(talk)) {
                     is_event_blocked = MUTED_MESSAGE_LIST.process_talk(talk);
+                }
+
+                if(SETTINGS.is_ban_repeating_messages()) {
+                    this.append_talk_to_buffer(talk);
+
+                    if (this.has_repeating_messages()) {
+                        //MUTED_MESSAGE_LIST.br_talk_user(talk); // TODO: Move to a third module
+                        console.log('SPAM banning works. TODO: Enable.');
+                    }
                 }
             // User gets in
             } else if (talk.type === 'join' || (talk.type === 'user-profile' && talk.reason != 'leave')) {

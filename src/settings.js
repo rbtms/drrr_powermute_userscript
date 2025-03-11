@@ -6,6 +6,7 @@ class Settings {
         this.KEY_IS_ENABLED = 'is_enabled';
         this.KEY_LIST_TYPE = 'list_type';
         this.KEY_MUTE_USER_IF_NO_TRIPCODE = 'mute_user_if_no_tripcode';
+        this.KEY_BAN_REPEATING_MESSAGES = 'ban_repeating_messages';
 
         // If the muting is enabled
         this._is_enabled = true;
@@ -13,6 +14,8 @@ class Settings {
         this._list_type = Enum_ListType.BLACKLIST;
         // Mute users automatically if they don't have a tripcode
         this._mute_user_if_no_tripcode = false;
+        // B&R users which post repeated messages
+        this._ban_repeating_messages = false;
 
         this.load_from_storage();
     }
@@ -30,8 +33,17 @@ class Settings {
         return this._mute_user_if_no_tripcode;
     }
 
+    is_ban_repeating_messages() {
+        return this._ban_repeating_messages;
+    }
+
     set_mute_user_if_no_tripcode(val) {
         this._mute_user_if_no_tripcode = val;
+        this.save_to_storage();
+    }
+
+    set_ban_repeating_messages(val) {
+        this._ban_repeating_messages = val;
         this.save_to_storage();
     }
 
@@ -54,6 +66,7 @@ class Settings {
             this._is_enabled = settings_json[this.KEY_IS_ENABLED];
             this._list_type = Enum_ListType[settings_json[this.KEY_LIST_TYPE]];
             this._mute_user_if_no_tripcode = settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE];
+            this._ban_repeating_messages = settings_json[this.KEY_BAN_REPEATING_MESSAGES];
         } else {
             // Initial localstorage save
             this.save_to_storage();
@@ -66,6 +79,7 @@ class Settings {
         settings_json[this.KEY_IS_ENABLED] = this._is_enabled;
         settings_json[this.KEY_LIST_TYPE] = this._list_type.description;
         settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE] = this._mute_user_if_no_tripcode;
+        settings_json[this.KEY_BAN_REPEATING_MESSAGES] = this._ban_repeating_messages;
 
         localStorage.setItem(this.KEY_LOCALSTORAGE, JSON.stringify(settings_json));
         console.info('[DRRR Power Mute] SAVED SETTINGS', settings_json);

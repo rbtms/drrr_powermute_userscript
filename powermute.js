@@ -324,6 +324,7 @@
             this.KEY_IS_ENABLED = 'is_enabled';
             this.KEY_LIST_TYPE = 'list_type';
             this.KEY_MUTE_USER_IF_NO_TRIPCODE = 'mute_user_if_no_tripcode';
+            this.KEY_BAN_REPEATING_MESSAGES = 'ban_repeating_messages';
     
             // If the muting is enabled
             this._is_enabled = true;
@@ -331,6 +332,8 @@
             this._list_type = Enum_ListType.BLACKLIST;
             // Mute users automatically if they don't have a tripcode
             this._mute_user_if_no_tripcode = false;
+            // B&R users which post repeated messages
+            this._ban_repeating_messages = false;
     
             this.load_from_storage();
         }
@@ -348,8 +351,17 @@
             return this._mute_user_if_no_tripcode;
         }
     
+        is_ban_repeating_messages() {
+            return this._ban_repeating_messages;
+        }
+    
         set_mute_user_if_no_tripcode(val) {
             this._mute_user_if_no_tripcode = val;
+            this.save_to_storage();
+        }
+    
+        set_ban_repeating_messages(val) {
+            this._ban_repeating_messages = val;
             this.save_to_storage();
         }
     
@@ -372,6 +384,7 @@
                 this._is_enabled = settings_json[this.KEY_IS_ENABLED];
                 this._list_type = Enum_ListType[settings_json[this.KEY_LIST_TYPE]];
                 this._mute_user_if_no_tripcode = settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE];
+                this._ban_repeating_messages = settings_json[this.KEY_BAN_REPEATING_MESSAGES];
             } else {
                 // Initial localstorage save
                 this.save_to_storage();
@@ -384,6 +397,7 @@
             settings_json[this.KEY_IS_ENABLED] = this._is_enabled;
             settings_json[this.KEY_LIST_TYPE] = this._list_type.description;
             settings_json[this.KEY_MUTE_USER_IF_NO_TRIPCODE] = this._mute_user_if_no_tripcode;
+            settings_json[this.KEY_BAN_REPEATING_MESSAGES] = this._ban_repeating_messages;
     
             localStorage.setItem(this.KEY_LOCALSTORAGE, JSON.stringify(settings_json));
             console.info('[DRRR Power Mute] SAVED SETTINGS', settings_json);
@@ -567,6 +581,15 @@
                                 <h5 class="mb-0" style="display: inline-block"> Whitelist</h5>
                         </div>
                         
+                        <div id="pm-settings-mute-ban-repeating-messages" class="checkbox">
+                            <label><div>
+                                <input type="checkbox" id="checkbox-pm-settings-ban-repeating-messages"` +
+                    (SETTINGS.is_ban_repeating_messages() ? 'checked' : '') +
+                    `>
+                                    <h5 class="mb-0">Ban repeating messages (3+)</h5>
+                            </div></label>
+                        </div>
+    
                         <div id="pm-settings-mute-no-trip" class="checkbox">
                             <label><div>
                                 <input type="checkbox" id="checkbox-pm-settings-mute-no-trip"` +
@@ -594,6 +617,11 @@
                 // 0: Blacklist, 1: Whitelist
                 const list_type = elem.currentTarget.value == 0 ? Enum_ListType.BLACKLIST : Enum_ListType.WHITELIST;
                 SETTINGS.set_list_type(list_type);
+            });
+    
+            // Ban repeating messages
+            panel_pm_settings.find('#checkbox-pm-settings-ban-repeating-messages').on('click', function (elem) {
+                SETTINGS.set_ban_repeating_messages(elem.currentTarget.checked);
             });
     
             // Mute people with no tripcode checkbox
@@ -696,6 +724,12 @@
     }
 
     class Websocket {
+        constructor() {
+            // Array with the last talks to detect spam
+            this.LAST_TALK_BUFFER = [];
+            this.LAST_TALK_BUFFER_MAX_SIZE = 10;
+        }
+    
         /* Handle self connect */
         async handle_connect() {
             const res = await fetch(API_URL);
@@ -718,6 +752,35 @@
             }
         }
     
+        append_talk_to_buffer(talk) {
+            const LAST_TALK_BUFFER_SIZE = 100;
+    
+            if(this.LAST_TALK_BUFFER.length > this.LAST_TALK_BUFFER_MAX_SIZE) {
+                // Rotate buffer
+                for(let i = this.LAST_TALK_BUFFER_MAX_SIZE-1; i > 0; i--) {
+                    this.LAST_TALK_BUFFER[i] = this.LAST_TALK_BUFFER[i-1];
+                }
+    
+                this.LAST_TALK_BUFFER[0] = talk;
+            } else {
+                this.LAST_TALK_BUFFER.unshift(talk);
+            }
+        }
+    
+        has_repeating_messages() {
+            // Straighforward but otherwise inefficient way of doing it
+            const repeating_messages_to_ban = 6;
+    
+            for(let i = 1; i < repeating_messages_to_ban+1; i++) {
+                if(this.LAST_TALK_BUFFER.length <= i
+                    || (this.LAST_TALK_BUFFER[0].message != this.LAST_TALK_BUFFER[i])) {
+                        return false;
+                }
+            }
+    
+            return true;
+        }
+    
         /* Handle a new talk */
         handle_new_talk(data) {
             const talks = data.map((d) => new Talk(d));
@@ -732,6 +795,15 @@
                     // TODO: Show UI message
                     if(MUTED_MESSAGE_LIST.should_process_talk(talk)) {
                         is_event_blocked = MUTED_MESSAGE_LIST.process_talk(talk);
+                    }
+    
+                    if(SETTINGS.is_ban_repeating_messages()) {
+                        this.append_talk_to_buffer(talk);
+    
+                        if (this.has_repeating_messages()) {
+                            //MUTED_MESSAGE_LIST.br_talk_user(talk); // TODO: Move to a third module
+                            console.log('SPAM banning works. TODO: Enable.');
+                        }
                     }
                 // User gets in
                 } else if (talk.type === 'join' || (talk.type === 'user-profile' && talk.reason != 'leave')) {

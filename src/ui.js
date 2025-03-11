@@ -167,6 +167,15 @@ class _UI {
                             <h5 class="mb-0" style="display: inline-block"> Whitelist</h5>
                     </div>
                     
+                    <div id="pm-settings-mute-ban-repeating-messages" class="checkbox">
+                        <label><div>
+                            <input type="checkbox" id="checkbox-pm-settings-ban-repeating-messages"` +
+                (SETTINGS.is_ban_repeating_messages() ? 'checked' : '') +
+                `>
+                                <h5 class="mb-0">Ban repeating messages (3+)</h5>
+                        </div></label>
+                    </div>
+
                     <div id="pm-settings-mute-no-trip" class="checkbox">
                         <label><div>
                             <input type="checkbox" id="checkbox-pm-settings-mute-no-trip"` +
@@ -194,6 +203,11 @@ class _UI {
             // 0: Blacklist, 1: Whitelist
             const list_type = elem.currentTarget.value == 0 ? Enum_ListType.BLACKLIST : Enum_ListType.WHITELIST;
             SETTINGS.set_list_type(list_type);
+        });
+
+        // Ban repeating messages
+        panel_pm_settings.find('#checkbox-pm-settings-ban-repeating-messages').on('click', function (elem) {
+            SETTINGS.set_ban_repeating_messages(elem.currentTarget.checked);
         });
 
         // Mute people with no tripcode checkbox
