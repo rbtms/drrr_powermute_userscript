@@ -19,7 +19,7 @@ function echoFile() {
 echo "// ==UserScript=="
 echo "// @name         DRRR.com PowerMute"
 echo "// @namespace    http://tampermonkey.net/"
-echo "// @version      1.0"
+echo "// @version      1.4"
 echo "// @description  Muting tools for drrr.com"
 echo "// @author       Robo"
 echo "// @match        https://drrr.com/room/*"
@@ -29,18 +29,19 @@ echo
 
 echo '(async function (jQuery) {'
 echo "    'use strict';"
-echoFile ./src//globals.js
-echoFile ./src//talk.js
-echoFile ./src//user.js
-echoFile ./src//mutedUserProp.js
-echoFile ./src//blackWhiteList.js
-echoFile ./src//blackList.js
-echoFile ./src//whiteList.js
+echoFile ./src/globals.js
+echoFile ./src/talk.js
+echoFile ./src/user.js
+echoFile ./src/mutedUserProp.js
+echoFile ./src/blackWhiteList.js
+echoFile ./src/blackList.js
+echoFile ./src/whiteList.js
 echoFile ./src/mutedMessageList.js
-echoFile ./src//settings.js
-echoFile ./src//ui.js
-echoFile ./src//websocket.js
-echoFile ./src//main.js
+echoFile ./src/spamDetector.js
+echoFile ./src/settings.js
+echoFile ./src/ui.js
+echoFile ./src/websocket.js
+echoFile ./src/main.js
 echo
 echo '    await main();'
 echo '})($);'

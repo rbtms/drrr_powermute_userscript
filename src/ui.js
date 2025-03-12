@@ -172,7 +172,7 @@ class _UI {
                             <input type="checkbox" id="checkbox-pm-settings-ban-repeating-messages"` +
                 (SETTINGS.is_ban_repeating_messages() ? 'checked' : '') +
                 `>
-                                <h5 class="mb-0">Ban repeating messages (3+)</h5>
+                                <h5 class="mb-0">Ban SPAM (Agressive. Might have false positives.)</h5>
                         </div></label>
                     </div>
 
