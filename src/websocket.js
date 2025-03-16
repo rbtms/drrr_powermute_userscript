@@ -47,8 +47,7 @@ class Websocket {
                 // TODO: Change settings attribute name
                 if(SETTINGS.is_ban_repeating_messages()) {
                     if(this.spamDetector.is_talk_spam(talk)) {
-                        //MUTED_MESSAGE_LIST.br_talk_user(talk); // TODO: Move to a third module
-                        console.log('SPAM banning works. TODO: Enable.');
+                        MUTED_MESSAGE_LIST.br_talk_user(talk); // TODO: Move to a third module
                     }
                 }
             // User gets in
