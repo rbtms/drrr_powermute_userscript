@@ -47,7 +47,7 @@ class Websocket {
                 // TODO: Change settings attribute name
                 if(SETTINGS.is_ban_repeating_messages()) {
                     if(this.spamDetector.is_talk_spam(talk)) {
-                        MUTED_MESSAGE_LIST.br_talk_user(talk); // TODO: Move to a third module
+                        MUTED_MESSAGE_LIST.ban_talk_user(talk); // TODO: Move to a third module
                     }
                 }
             // User gets in
@@ -121,13 +121,13 @@ class Websocket {
 
             socket.on = function (event, callback) {
                 return originalOn.call(this, event, async function () {
-                    const data = Array.prototype.slice.call(arguments);
                     // Whether to return the event to the original handler. This should be false for blocked elements
                     let is_event_blocked = false;
 
                     // Wrapped so that the event is sent back normally whatever happens
                     try {
                         if (SETTINGS.is_enabled()) {
+                            const data = Array.prototype.slice.call(arguments);
                             is_event_blocked = await this_websocket.dispatch_event(event, data);
                         }
                     } catch (err) {

@@ -19,10 +19,11 @@ function echoFile() {
 echo "// ==UserScript=="
 echo "// @name         DRRR.com PowerMute"
 echo "// @namespace    http://tampermonkey.net/"
-echo "// @version      1.4"
+echo "// @version      1.7"
 echo "// @description  Muting tools for drrr.com"
 echo "// @author       Robo"
 echo "// @match        https://drrr.com/room/*"
+echo "// @license      GPL-3.0-only"
 echo "// @grant        none"
 echo "// ==/UserScript=="
 echo
